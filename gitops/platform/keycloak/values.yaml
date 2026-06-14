@@ -1,0 +1,18 @@
+auth:
+  adminUser: admin
+  adminPassword: admin123   # change later
+
+proxy: edge
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  hostname: keycloak.local
+
+  tls: false
+
+postgresql:
+  enabled: true
+
+service:
+  type: ClusterIP

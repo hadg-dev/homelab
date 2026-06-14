@@ -1,0 +1,19 @@
+configs:
+  params:
+    server.basehref: /
+    server.insecure: true
+  cm:
+    url: http://argocd.local
+
+    oidc.config: |
+      name: Keycloak
+      issuer: http://keycloak.local/realms/homelab
+      clientID: argocd
+      clientSecret: $oidc.keycloak.clientSecret      
+      requestedScopes: ["openid", "profile", "email", "groups"]
+
+  rbac:
+    policy.default: role:readonly
+    policy.csv: |
+      g, platform-admin, role:admin
+      g, dev, role:readonly
