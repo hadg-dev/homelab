@@ -147,3 +147,67 @@ The project uses `state.json` to track bootstrap progress, enabling safe re-runs
 - **Package Manager**: uv
 
 
+## Testing k8sGPT
+
+```bash
+kubectl config current-context
+kubectl cluster-info
+brew tap k8sgpt-ai/k8sgpt
+brew install k8sgpt
+k8sgpt auth add -b google -p "$GEMINI_API_KEY" -m "gemini-3.5-flash"
+k8sgpt auth default --provider google 
+k8sgpt auth list
+```
+
+```bash
+kubectl apply -f broken-pod.yaml 
+# local analyse only, use always as first run do not consume any token
+k8sgpt analyze
+
+# using the LLM connected (here Gemini)
+k8sgpt analyse --explain
+k8sgpt analyze --explain --namespace argocd
+k8sgpt analyze --explain --filter Ingress
+k8sgpt analyze --explain --filter Ingress --namespace monitoring
+```
+
+To restrict our analysis we may filter components scanned by default
+```bash
+k8sgpt filters list
+```
+
+```bash
+k8sgpt integrations list
+Active:
+Unused: 
+> prometheus
+> aws
+> keda
+> kyverno
+```
+
+Yes, you can absolutely set up monitoring and alerts, but you must use the k8sgpt Operator to do this, as the CLI tool is designed for "one-off" manual checks.
+
+How it works:
+Continuous Scanning: When installed as an operator (using Helm), k8sgpt runs as a controller inside your cluster. It performs periodic scans of your resources.
+
+Prometheus Integration: The operator exposes Prometheus-compatible metrics. By enabling the ServiceMonitor in the Helm chart, your Prometheus instance can scrape these diagnostic results.
+
+Alerting Rules: Once your metrics are in Prometheus, you can create standard Prometheus Alerting Rules (Alertmanager) based on k8sgpt findings. For example, you could alert if the number of "unhealthy" resources reported by k8sgpt exceeds a certain threshold.
+
+External Notifications: The operator can be configured to forward diagnostic results to external sinks like Slack, email, or your CI/CD pipelines, providing you with human-readable summaries whenever an issue is detected.
+
+
+### uninstall the CLI version
+brew uninstall k8sgpt
+brew untap k8sgpt-ai/k8sgpt
+rm -rf ~/Library/Application\ Support/k8sgpt
+
+### installing the k8sGPT operator
+
+```bash
+helm install k8sgpt k8sgpt/k8sgpt-operator -n k8sgpt-operator-system \
+  --create-namespace \
+  --set serviceMonitor.enabled=true \
+  --set grafanaDashboard.enabled=true
+```
