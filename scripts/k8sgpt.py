@@ -1,8 +1,9 @@
-import subprocess
 import os
-import typer
 import shutil
+import subprocess
 from enum import Enum
+
+import typer
 
 app = typer.Typer()
 
@@ -16,6 +17,8 @@ class Provider(str, Enum):
 # -------------------------
 # utils
 # -------------------------
+
+
 def run_cmd(cmd: list[str]) -> str:
     result = subprocess.run(
         cmd,
@@ -38,10 +41,10 @@ def is_installed(binary: str) -> bool:
 # -------------------------
 # INSTALL
 # -------------------------
+
+
 def install_k8sgpt() -> None:
-    """
-    Install K8sGPT binary if not already installed.
-    """
+    """Install K8sGPT binary if not already installed."""
 
     if is_installed("k8sgpt"):
         typer.echo("K8sGPT already installed.")
@@ -49,13 +52,11 @@ def install_k8sgpt() -> None:
 
     typer.echo("Installing K8sGPT...")
 
-    install_script = "https://raw.githubusercontent.com/k8sgpt-ai/k8sgpt/main/install.sh"
+    install_script = (
+        "https://raw.githubusercontent.com/k8sgpt-ai/k8sgpt/main/install.sh"
+    )
 
-    run_cmd([
-        "bash",
-        "-c",
-        f"curl -s {install_script} | bash"
-    ])
+    run_cmd(["bash", "-c", f"curl -s {install_script} | bash"])
 
     typer.echo("K8sGPT installed successfully.")
 
@@ -63,10 +64,10 @@ def install_k8sgpt() -> None:
 # -------------------------
 # AUTH
 # -------------------------
+
+
 def configure_provider(provider: Provider) -> None:
-    """
-    Configure LLM backend for K8sGPT.
-    """
+    """Configure LLM backend for K8sGPT."""
 
     if provider == Provider.openai:
         key = os.getenv("OPENAI_API_KEY")
@@ -93,11 +94,11 @@ def configure_provider(provider: Provider) -> None:
 # -------------------------
 # CLI
 # -------------------------
+
+
 @app.command()
-def install():
-    """
-    Install K8sGPT binary.
-    """
+def install() -> None:
+    """Install K8sGPT binary."""
     install_k8sgpt()
 
 

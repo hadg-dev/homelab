@@ -127,6 +127,7 @@ multipass set local.k8s-worker-1.bridged=true
 multipass set local.k8s-worker-2.bridged=true
 ```
 
+
 ## State Management
 
 The project uses `state.json` to track bootstrap progress, enabling safe re-runs of setup steps. State tracks:
@@ -211,3 +212,17 @@ helm install k8sgpt k8sgpt/k8sgpt-operator -n k8sgpt-operator-system \
   --set serviceMonitor.enabled=true \
   --set grafanaDashboard.enabled=true
 ```
+
+
+# How to use homelab
+
+## Upload files from host (macOS) into multipass (VMs)
+
+| 🎨 Type | 🎯 Action | 💻 Command | 💡 DevOps Pro Tip |
+| :--- | :--- | :--- | :--- |
+| 📤 **Copy** | Host ➡️ VM | `multipass transfer ./local.yml node1:/tmp/` | Faster than mounts for single, static artifacts (like raw manifests). |
+| 📥 **Copy** | VM ➡️ Host | `multipass transfer node1:/var/log/syslog ./` | Great for extracting logs or generated kubeconfigs locally. |
+| 🔗 **Mount** | Map Host to VM | `multipass mount ~/dev/repo node1:/workspace` | Native mounts. UID/GID mappings are handled automatically by `multipassd`. |
+| ✂️ **Unmount**| Remove mapping | `multipass unmount node1` | Run this before tearing down/rebuilding to avoid stale file handles. |
+| 🔍 **Inspect**| Check mounts | `multipass info node1` | Will list all currently active mounts under the `Mounts:` section. |
+| 🚀 **Exec** | Read directly | `multipass exec node1 -- cat /etc/hosts > hosts.txt` | Alternative to `transfer` if you just need to dump stdout to a local file. |

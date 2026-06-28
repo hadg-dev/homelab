@@ -1,67 +1,72 @@
-import typer
-from rich import print
 from pathlib import Path
 
+import typer
+
 from scripts.bootstrap import run
+from scripts.logger import console
 
 app = typer.Typer()
 
-def install_cert_manager():
-    run("""
-helm repo add jetstack https://charts.jetstack.io || true
-helm repo update
-""")
 
-    run("""
-helm upgrade --install cert-manager jetstack/cert-manager \
-  --namespace cert-manager \
-  --create-namespace \
-  --set crds.enabled=true
-""")
+def install_cert_manager() -> None:
+    run(
+        "helm repo add jetstack https://charts.jetstack.io || true\n"
+        "helm repo update"
+    )
 
-def install_tls():
-    print("[bold yellow]Applying TLS manifests...[/bold yellow]")
+    run(
+        "helm upgrade --install cert-manager jetstack/cert-manager \\\n"
+        "  --namespace cert-manager \\\n"
+        "  --create-namespace \\\n"
+        "  --set crds.enabled=true"
+    )
+
+
+def install_tls() -> None:
+    console.print("[bold yellow]Applying TLS manifests...[/bold yellow]")
 
     install_cert_manager()
-    run("""
-    kubectl wait \
-    --for=condition=Available \
-    deployment/cert-manager \
-    -n cert-manager \
-    --timeout=300s
-    """)
+    run(
+        "kubectl wait \\\n"
+        "    --for=condition=Available \\\n"
+        "    deployment/cert-manager \\\n"
+        "    -n cert-manager \\\n"
+        "    --timeout=300s"
+    )
     run("kubectl apply -f k8s/security/")
 
-    print("[green]TLS configured[/green]")
+    console.print("[green]TLS configured[/green]")
 
 
-def export_ca():
+def export_ca() -> None:
     Path("certs").mkdir(exist_ok=True)
 
-    run("""
-    kubectl get secret homelab-root-ca-secret \
-      -n cert-manager \
-      -o jsonpath='{.data.tls\\.crt}' \
-      | base64 -d > certs/homelab-root-ca.crt
-    """)
+    run(
+        "kubectl get secret homelab-root-ca-secret \\\n"
+        "      -n cert-manager \\\n"
+        "      -o jsonpath='{.data.tls\\\\.crt}' \\\n"
+        "      | base64 -d > certs/homelab-root-ca.crt"
+    )
 
-    print(
+    console.print(
         "[green]Root CA exported to certs/homelab-root-ca.crt[/green]"
     )
 
 
 @app.command()
-def export_ca_cmd():
+def export_ca_cmd() -> None:
     export_ca()
 
 
 @app.command()
-def up():
+def up() -> None:
     install_tls()
 
+
 @app.command()
-def uninstall():
+def uninstall() -> None:
     console.print("[red]Teardown not implemented yet[/red]")
+
 
 if __name__ == "__main__":
     app()
